@@ -1,0 +1,78 @@
+* Maze generator in SNOBOL4
+* Joe Wingbermuehle
+* 20100925
+
+* Function definitions.
+            define('init_maze()x')
+            define('show_maze()x,y,line')
+            define('carve_maze(x,y)dir,count,dx,dy,x1,y1,x2,y2')
+            define('gen_maze()')
+            define('random(n)')
+
+* The size of the maze.  Must be even.
+            width = 38
+            height = 24
+
+* Seed the random number generator.
+            randval = date()
+seed_loop   randval notany('0123456789') = ''   :s(seed_loop)
+
+* Generate and display the maze.
+            sz = '0:' width ',0:' height
+            maze = array(sz, 1)
+            maze<1, 1> = 0
+            gen_maze()
+            maze<1, 0> = 0
+            maze<width - 1, height> = 0
+            show_maze()                         :(end)
+
+* Funcation to carve the maze starting at (x, y).
+carve_maze  dir = random(4)
+            count = 0
+cm_cont     dx = 0
+            dy = 0
+            dx = eq(dir, 0) 1
+            dx = eq(dir, 1) -1
+            dy = eq(dir, 2) 1
+            dy = eq(dir, 3) -1
+            x1 = x + dx
+            y1 = y + dy
+            x2 = x1 + dx
+            y2 = y1 + dy
+            lt(x2, width)                       :f(cm_next)
+            lt(y2, height)                      :f(cm_next)
+            eq(maze<x1, y1>, 1)                 :f(cm_next)
+            eq(maze<x2, y2>, 1)                 :f(cm_next)
+            maze<x, y> = 0
+            maze<x1, y1> = 0
+            maze<x2, y2> = 0
+            x = x2
+            y = y2                              :(carve_maze)
+cm_next     dir = remdr(dir + 1, 4)
+            count = lt(count, 4) count + 1      :s(cm_cont)f(return)
+
+* Function to generate the maze.
+gen_maze    y = 1
+gm_l1       x = 1
+gm_l2       carve_maze(x, y)
+            x = lt(x, width) x + 2              :s(gm_l2)
+            y = lt(y, height) y + 2             :s(gm_l1)f(return)
+
+* Function to display the maze.
+show_maze   y = 0
+sm_l1       x = 0
+            line = ''
+sm_l2       eq(maze<x, y>, 0)                   :s(sm_l3)
+            line = line '[]'                    :(sm_l4)
+sm_l3       line = line '  '
+sm_l4       x = lt(x, width) x + 1              :s(sm_l2)
+            output = line
+            y = lt(y, height) y + 1             :s(sm_l1)f(return)
+
+* Function to generate a random number.
+random      randval = randval * 1061 + 3251
+            randval rtab(5) =
+            random = (randval * n) / 100000     :(return)
+
+end
+

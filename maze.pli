@@ -1,0 +1,120 @@
+/* Maze Generator in PL/1
+ * Joe Wingbermuehle
+ * 2010-10-01
+ */
+
+maze: procedure options(main);
+
+   declare width              fixed binary init(39);
+   declare height             fixed binary init(23);
+   declare rand               fixed binary(31);
+   declare mz(width, height)  fixed binary;
+
+   /* Procedure to initialize the maze matrix. */
+   initialize_maze: procedure;
+
+      declare (x, y) fixed binary;
+
+      do x = 1 to width;
+         do y = 1 to height;
+            mz(x, y) = 1;
+         end;
+      end;
+
+   end initialize_maze;
+
+   /* Procedure to display the maze. */
+   show_maze: procedure;
+
+      declare (x, y) fixed binary;
+      declare line   char(width * 2);
+
+      do y = 1 to height;
+         do x = 1 to width;
+            if mz(x, y) = 1 then
+               substr(line, x * 2 - 1, 2) = '[]';
+            else
+               substr(line, x * 2 - 1, 2) = '  ';
+         end;
+         put skip list(line);
+      end;
+
+   end show_maze;
+
+   /* Procedure to generate the maze. */
+   generate_maze: procedure;
+      mz(2, 2) = 0;
+      call carve_maze(2, 2);
+      mz(2, 1) = 0;
+      mz(width - 1, height) = 0;
+   end generate_maze;
+
+   /* Procedure to carve the maze starting at x, y. */
+   carve_maze: procedure(x, y) recursive;
+
+      declare (x, y)       fixed binary;
+      declare (x1, y1)     fixed binary;
+      declare (x2, y2)     fixed binary;
+      declare (dx, dy)     fixed binary;
+      declare (dir, cnt)   fixed binary;
+
+      dir = random_dir;
+      cnt = 0;
+      do while(cnt < 4);
+         dx = 0; dy = 0;
+         select (dir);
+            when (0)    dx = 1;
+            when (1)    dy = 1;
+            when (2)    dx = -1;
+            otherwise   dy = -1;
+         end;
+         x1 = x + dx;
+         y1 = y + dy;
+         x2 = x1 + dx;
+         y2 = y1 + dy;
+         if x2 > 1 & x2 < width & y2 > 1 & y2 < height
+            & mz(x1, y1) = 1 & mz(x2, y2) = 1 then
+            do;
+               mz(x1, y1) = 0;
+               mz(x2, y2) = 0;
+               call carve_maze(x2, y2);
+               dir = random_dir;
+               cnt = 0;
+            end;
+         else
+            do;
+               dir = mod(dir + 1, 4);
+               cnt = cnt + 1;
+            end;
+      end;
+
+   end carve_maze;
+
+   /* Function to get a random direction. */
+   random_dir: procedure returns(fixed binary);
+
+      declare (a)       fixed binary(31);
+      declare (m)       fixed binary(31);
+      declare (r, q)    fixed binary(31);
+      declare (g, h)    fixed binary(31);
+
+      a = 7;
+      m = 524287;
+
+      q = m / a;
+      r = mod(m, a);
+      g = a * mod(rand, q) - r * (rand / q);
+      h = rand / q - a * rand / m;
+      rand = g + m * h;
+      return(rand);
+
+   end random_dir;
+
+   /* Generate and display a random maze. */
+   rand = time;
+   call initialize_maze;
+   call generate_maze;
+   call show_maze;
+
+end maze;
+
