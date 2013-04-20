@@ -7,6 +7,7 @@ Maze generators in a variety of programming languages.
  - *maze.bas* BASIC
  - *maze.c* C
  - *maze.cob* COBOL
+ - *maze.d* D
  - *maze.erl* Erlang
  - *maze.f90* Fortran
  - *maze.go* Go
