@@ -15,6 +15,7 @@ Maze generators in a variety of programming languages.
  - *maze.io* Io
  - *maze.lisp* Common Lisp
  - *maze.ml* OCaml
+ - *maze.nim* Nimrod
  - *maze.pas* Pascal
  - *maze.pl* Prolog
  - *maze.pli* PL/1
