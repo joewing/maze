@@ -20,6 +20,7 @@ Maze generators in a variety of programming languages.
  - *maze.pl* Prolog
  - *maze.pli* PL/1
  - *maze.py* Python
+ - *maze.r* R
  - *maze.rb* Ruby
  - *maze.s* x86-64
  - *maze.sml* SML
