@@ -6,6 +6,7 @@ Maze generators in a variety of programming languages.
  - *maze.adb* Ada
  - *maze.bas* BASIC
  - *maze.c* C
+ - *maze.clj* Clojure
  - *maze.cob* COBOL
  - *maze.d* D
  - *maze.erl* Erlang
