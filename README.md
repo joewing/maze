@@ -16,6 +16,7 @@ Here is a list of the languages:
  - *maze.clj* Clojure
  - *maze.cob* COBOL
  - *maze.d* D
+ - *maze.dylan* Dylan
  - *maze.erl* Erlang
  - *maze.f90* Fortran
  - *maze.go* Go
@@ -43,7 +44,6 @@ Here is a list of the languages:
 
 Some languages in which I have yet to implement a maze generator include:
  - APL
- - Dylan
  - Factor
  - Groovy
  - J
