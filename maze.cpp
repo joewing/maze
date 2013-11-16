@@ -26,18 +26,19 @@ public:
       m_maze[(m_height - 2) * m_width + m_width - 3] = true;
    }
 
+private:
+
    /** Display the maze. */
-   void Show()
+   std::ostream &Show(std::ostream &os) const
    {
       for(unsigned y = 0; y < m_height; y++) {
          for(unsigned x = 0; x < m_width; x++) {
-            std::cout << (m_maze[y * m_width + x] ? "  " : "[]");
+            os << (m_maze[y * m_width + x] ? "  " : "[]");
          }
-         std::cout << "\n";
+         os << "\n";
       }
+      return os;
    }
-
-private:
 
    /** Initialize the maze array. */
    void Initialize()
@@ -75,13 +76,21 @@ private:
    const unsigned m_height;
    std::vector<bool> m_maze;
 
+   friend std::ostream &operator<<(std::ostream &os, const Maze &maze);
+
 };
+
+/** Maze insertion operator. */
+std::ostream &operator<<(std::ostream &os, const Maze &maze)
+{
+   return maze.Show(os);
+}
 
 /** Generate and display a random maze. */
 int main(int argc, char *argv[])
 {
    Maze m(39, 23);
    m.Generate();
-   m.Show();
+   std::cout << m;
    return 0;
 }
