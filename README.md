@@ -15,6 +15,7 @@ Here is a list of the languages:
  - *maze.c* C
  - *maze.clj* Clojure
  - *maze.cob* COBOL
+ - *maze.cpp* C++
  - *maze.d* D
  - *maze.dylan* Dylan
  - *maze.erl* Erlang
