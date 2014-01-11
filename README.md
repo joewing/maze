@@ -35,6 +35,7 @@ Here is a list of the languages:
  - *maze.py* Python
  - *maze.r* R
  - *maze.rb* Ruby
+ - *maze.rs* Rust
  - *maze.s* x86-64
  - *Maze.scala* Scala
  - *maze.sml* SML
