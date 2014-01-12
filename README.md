@@ -18,6 +18,7 @@ Here is a list of the languages:
  - *maze.cpp* C++
  - *maze.d* D
  - *maze.dylan* Dylan
+ - *maze.e* Eiffel
  - *maze.erl* Erlang
  - *maze.factor* Factor
  - *maze.f90* Fortran
