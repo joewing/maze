@@ -68,13 +68,6 @@ getPosition (x, y) DRight = (x + 1, y)
 getPosition (x, y) DUp = (x, y - 1)
 getPosition (x, y) DDown = (x, y + 1)
 
--- Reverse a direction.
-invertDirection :: Direction -> Direction
-invertDirection DLeft = DRight
-invertDirection DRight = DLeft
-invertDirection DUp = DDown
-invertDirection DDown = DUp
-
 -- Move in the specified direction.
 move :: ElementType -> (Int, Int) -> Direction -> MazeState (Int, Int)
 move fill pos d = do
