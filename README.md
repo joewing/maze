@@ -11,6 +11,7 @@ some of the code could be improved, which I fully intend to do eventually.
 Here is a list of the languages:
  - *maze.4th* Forth
  - *maze.adb* Ada
+ - *maze.awk* AWK
  - *maze.bas* BASIC
  - *maze.c* C
  - *maze.clj* Clojure
