@@ -1,11 +1,12 @@
 -- Maze generator and solver in Haskell
 -- Joe Wingbermuehle
--- 20070602 <> 20140812
+-- 20070602 <> 20140815
 
 module Main where
 
 import Control.Monad
 import Control.Monad.State
+import Control.Monad.Reader
 import Data.Map
 import System.Random
 
@@ -40,7 +41,7 @@ instance Show MazeData where
                     let e = findWithDefault Wall (x, y) (maze md) in
                     (show e) ++ (showMaze (x + 1) y md)
 
-type MazeState a = State MazeData a
+type MazeState a = ReaderT (Int, Int) (State MazeData) a
 
 -- Initialize an uncarved maze.
 initMaze :: Int -> Int -> Int -> MazeData
@@ -69,9 +70,9 @@ getPosition (x, y) DUp = (x, y - 1)
 getPosition (x, y) DDown = (x, y + 1)
 
 -- Move in the specified direction.
-move :: ElementType -> (Int, Int) -> Direction -> MazeState (Int, Int)
-move fill pos d = do
-    st <- get
+move :: ElementType -> Direction -> MazeState (Int, Int)
+move fill d = do
+    pos <- ask; st <- get
     let mid = getPosition pos d
     let m = insert mid fill $ maze st
     let next = getPosition mid d
@@ -79,9 +80,9 @@ move fill pos d = do
     return next
 
 -- Determine if we can carve in the specified direction.
-canMove :: ElementType -> (Int, Int) -> Direction -> MazeState Bool
-canMove match pos d = do
-    st <- get
+canMove :: ElementType -> Direction -> MazeState Bool
+canMove match d = do
+    pos <- ask; st <- get
     let mid = getPosition pos d
     let e1 = findWithDefault Wall mid $ maze st
     let next = getPosition mid d
@@ -89,47 +90,49 @@ canMove match pos d = do
     return $ e1 == match && e2 == match
 
 -- Carve the maze starting at the speciified position.
-carve :: (Int, Int) -> MazeState ()
-carve pos = do
+carve :: MazeState ()
+carve = do
     st <- get
     let (start, g') = randomR (0, 3) $ gen st
     put $ st { gen = g' }
     mapM_ tryCarve [toEnum ((start + i) `mod` 4) | i <- [0 .. 3]]
     where
         tryCarve d = do
-            cm <- canMove Wall pos d
-            when cm (move Space pos d >>= carve)
+            cm <- canMove Wall d
+            when cm (move Space d >>= (\n -> local (const n) carve))
 
--- Find a path from the starting position to the end position.
-solveFrom :: (Int, Int) -> (Int, Int) -> MazeState Bool
-solveFrom pos stop
-    | pos == stop =
+-- Find a path from the current position to the end position.
+solveTo :: (Int, Int) -> MazeState Bool
+solveTo stop = do
+    pos <- ask
+    if pos == stop then
         return True
-    | otherwise = do
-        st <- get
+    else do
+        st <- get; pos <- ask
         put $ st { maze = insert pos Marked (maze st) }
         foldM trySolve False [toEnum i | i <- [0 .. 3]]
     where
         trySolve result d
             | result = return True
             | otherwise = do
-                cm <- canMove Space pos d
+                cm <- canMove Space d
                 if cm then do
-                    found <- (move Marked pos d >>= flip solveFrom stop)
+                    next <- move Marked d
+                    found <- local (const next) $ solveTo stop
                     if found then return True
-                    else (move Visited pos d >> return False)
+                    else (move Visited d >> return False)
                 else return False
 
 -- Generate a random maze.
 generate :: Int -> Int -> Int -> MazeData
-generate w h s = execState (carve (2, 2)) (initMaze w h s)
+generate w h s = execState (runReaderT carve (2, 2)) (initMaze w h s)
 
 -- Solve a maze.
 solve :: MazeData -> MazeData
 solve md =
     let start = (2, 2) in
     let stop = ((width md) - 3, (height md - 3)) in
-    execState (solveFrom start stop) md
+    execState (runReaderT (solveTo stop) start) md
 
 -- Generate and display a solved random maze.
 main :: IO ()
