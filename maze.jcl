@@ -50,14 +50,14 @@ INITLP3 STC     2,MAZE-1(3)
 *
 * CARVE THE MAZE
 *
-        XR      2,2
-        SL      2,WIDTH
-        ST      2,OFFSETS+2*4   NEGATIVE Y-OFFSET
-        L       2,WIDTH
-        ST      2,OFFSETS+3*4   POSITIVE Y-OFFSET
-        A       2,WIDTH
-        A       2,=F'2'         R2=WIDTH*2+2
-        XR      11,11
+        XR      4,4
+        SL      4,WIDTH
+        ST      4,OFFSETS+2*4   NEGATIVE Y-OFFSET
+        L       4,WIDTH
+        ST      4,OFFSETS+3*4   POSITIVE Y-OFFSET
+        A       4,WIDTH
+        A       4,=F'2'         R4=WIDTH*2+2
+        LA      11,CARVBUF
         BAL     14,CARVE
         L       2,=F'2'
         A       2,WIDTH
@@ -99,49 +99,44 @@ DISPNXT STH     7,OUTBUF(5)
         XR      0,0
         RETURN  (14,12)
 *
-* CARVE STARTING AT R2
+* CARVE STARTING AT R4
 * BUFFER FOR RECURSION IN R11
 * RETURN ADDRESS IN R14
 *
 CARVE   EQU     *
-        XR      7,7
-        STC     7,MAZE(2)
-        L       5,RAND              GET THE NEXT RANDOM NUMBER
-        M       4,=F'1664525'
-        AL      5,=F'1013904223'
-        ST      5,RAND
-        L       3,=F'4'             COUNT IN 3
-CARVELP N       5,=X'0000000C'      DIRECTION OFFSET IN 5
-        L       4,OFFSETS(5)        BYTE OFFSET IN 4
+        XR      1,1                 R1 IS ZERO
+        STC     1,MAZE(4)
+        L       3,RAND              GET THE NEXT RANDOM NUMBER
+        M       2,=F'1664525'
+        AL      3,=F'1013904223'
+        ST      3,RAND
+        L       2,=F'4'             COUNT IN 2
+CARVELP N       3,=X'0000000C'      DIRECTION OFFSET IN 3
+        L       5,OFFSETS(3)        BYTE OFFSET IN 5
         XR      6,6
-        ALR     6,4
-        ALR     6,2                 FIRST POSITION IN 6
-        ALR     4,6                 SECOND POSITION IN 5
+        ALR     6,5
+        ALR     6,4                 FIRST POSITION IN 6
+        ALR     5,6                 SECOND POSITION IN 5
         XR      7,7
         IC      7,MAZE(6)           FIRST VALUE IN 7
         XR      8,8
-        IC      8,MAZE(4)           SECOND VALUE IN 8
+        IC      8,MAZE(5)           SECOND VALUE IN 8
         NR      7,8                 CHECK IF CARVED
         BZ      CARVEN
-        XR      7,7                 CARVE
-        STC     7,MAZE(6)
-        STC     7,MAZE(4)
-        XR      2,2
-        ALR     2,4                 MOVE TO THE NEXT POSITION
-        ST      2,CARVBUF+0(11)     SAVE POSITION
-        ST      3,CARVBUF+4(11)     SAVE COUNT
-        ST      5,CARVBUF+8(11)     SAVE DIRECTION
-        ST      14,CARVBUF+12(11)   SAVE RETURN ADDRESS
+        STC     1,MAZE(6)           CARVE
+        STC     1,MAZE(5)
+        XR      4,4
+        ALR     4,5                 MOVE TO THE NEXT POSITION
+        STM     2,4,0(11)           SAVE CONTEXT
+        ST      14,12(11)           SAVE RETURN ADDRESS
         AL      11,=F'16'           UPDATE BUFFER LOCATION
         BAL     14,CARVE        
         S       11,=F'16'           RETURN BUFFER LOCATION
-        L       2,CARVBUF+0(11)     LOAD POSITION
-        L       3,CARVBUF+4(11)     LOAD COUNT
-        L       5,CARVBUF+8(11)     LOAD DIRECTION
-        L       14,CARVBUF+12(11)   LOAD RETURN ADDRESS
+        LM      2,4,0(11)           RESTORE CONTEXT
+        L       14,12(11)           RESTORE RETURN ADDRESS
         B       CARVE
-CARVEN  A       5,=X'00000004'      NEXT DIRECTION
-        S       3,=F'1'             UPDATE COUNT
+CARVEN  A       3,=X'00000004'      NEXT DIRECTION
+        S       2,=F'1'             UPDATE COUNT
         BNZ     CARVELP
         BR      14                  RETURN
 *
