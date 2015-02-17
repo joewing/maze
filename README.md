@@ -44,6 +44,7 @@ Here is a list of the languages:
  - *maze.sml* SML
  - *maze.sno* SNOBOL4
  - *maze.st* Smalltalk
+ - *maze.swift* Swift
  - *maze.tcl* TCL
  - *maze.v* Coq
  - *maze.vim* VIM
