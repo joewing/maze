@@ -26,6 +26,7 @@ Here is a list of the languages:
  - *maze.go* Go
  - *maze.hs* Haskell
  - *maze.io* Io
+ - *maze.jcl* IBM System/360 Assembly Language
  - *maze.jl* JL (https://github.com/joewing/jl)
  - *maze.kt* Kotlin
  - *maze.lisp* Common Lisp
@@ -44,6 +45,7 @@ Here is a list of the languages:
  - *maze.sml* SML
  - *maze.sno* SNOBOL4
  - *maze.st* Smalltalk
+ - *maze.swift* Swift
  - *maze.tcl* TCL
  - *maze.v* Coq
  - *maze.vim* VIM
