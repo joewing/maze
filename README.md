@@ -27,6 +27,7 @@ Here is a list of the languages:
  - *maze.hs* Haskell
  - *maze.io* Io
  - *maze.jl* JL (https://github.com/joewing/jl)
+ - *maze.kt* Kotlin
  - *maze.lisp* Common Lisp
  - *maze.lua* Lua
  - *maze.ml* OCaml
