@@ -1,87 +1,108 @@
 // Maze generator in Rust.
-// 2014-01-11
+// 2014-01-11 <> 20151208
 // Joe Wingbermuehle
 
-use std::rand;
+extern crate rand;
+
+use rand::Rng;
+use std::vec::Vec;
+
+enum Element {
+    Wall,
+    Passage,
+}
 
 struct Maze {
-    width:  int,
-    height: int,
-    data:   ~[bool]
+    width:      usize,
+    height:     usize,
+    data:       Vec<Element>,
 }
 
-// Create an empty maze structure.
-fn init_maze(width: int, height: int) -> ~Maze {
-    let mut maze = ~Maze {
-        width: width,
-        height: height,
-        data:   ~[]
-    };
-    for y in range(0, height) {
-        for x in range(0, width) {
-            let value =
-                if y == 0 || y == height - 1 {
-                    false
-                } else if x == 0 || x == width - 1 {
-                    false
-                } else {
-                    true
-                };
-            maze.data.push(value);
-        }
-    }
-    maze
-}
+impl Maze {
 
-// Show the maze.
-fn show_maze(maze: &Maze) {
-    for y in range(0, maze.height) {
-        for x in range(0, maze.width) {
-            if maze.data[y * maze.width + x] {
-                print("[]")
-            } else {
-                print("  ")
+    // Create an empty maze structure.
+    fn init(width: usize, height: usize) -> Maze {
+        let mut maze = Maze {
+            width:  width,
+            height: height,
+            data:   Vec::new(),
+        };
+        for y in 0 .. height {
+            for x in 0 .. width {
+                let value =
+                    if y == 0 || y == height - 1 {
+                        Element::Passage
+                    } else if x == 0 || x == width - 1 {
+                        Element::Passage
+                    } else {
+                        Element::Wall
+                    };
+                maze.data.push(value);
             }
         }
-        println("")
+        maze
     }
-}
 
-// Carve the maze starting at x, y.
-fn carve_maze<R: std::rand::Rng>(rng: &mut R, x: int, y: int, maze: &mut Maze) {
-    let xdirs = [ 1, -1, 0, 0 ];
-    let ydirs = [ 0, 0, 1, -1 ];
-    maze.data[y * maze.width + x] = false;
-    let d = rng.gen_integer_range(0, 4);
-    for i in range(0, 4) {
-        let dx = xdirs[(d + i) % 4];
-        let dy = ydirs[(d + i) % 4];
-        let x2 = x + dx;
-        let y2 = y + dy;
-        let nx = x2 + dx;
-        let ny = y2 + dy;
-        if maze.data[y2 * maze.width + x2] &&
-            maze.data[ny * maze.width + nx] {
-            maze.data[y2 * maze.width + x2] = false;
-            carve_maze(rng, nx, ny, maze);
+    // Show the maze.
+    fn show(&self) {
+        for y in 0 .. self.height {
+            for x in 0 .. self.width {
+                match self.data[y * self.width + x] {
+                   Element::Wall => print!("[]"),
+                   Element::Passage => print!("  "),
+                }
+            }
+            println!("")
         }
     }
 
-}
+    fn is_wall(&self, x: isize, y: isize) -> bool {
+        let (ux, uy) = (x as usize, y as usize);
+        match self.data[(uy * self.width + ux) as usize] {
+            Element::Wall => true,
+            Element::Passage => false,
+        }
+    }
 
-// Generate a maze.
-fn generate_maze(width: int, height: int) -> ~Maze {
-    let mut maze = init_maze(width, height);
-    let rng = rand::task_rng();
-    carve_maze(rng, 2, 2, maze);
-    maze.data[1 * width + 2] = false;
-    maze.data[(height - 2) * width + (width - 3)] = false;
-    maze
+    // Carve the maze starting at x, y.
+    fn carve<R: rand::Rng>(&mut self, rng: &mut R, x: usize, y: usize) {
+        let xdirs = [ 1, -1, 0, 0 ];
+        let ydirs = [ 0, 0, 1, -1 ];
+        self.data[y * self.width + x] = Element::Passage;
+        let d = rng.gen::<usize>() % 4;
+        for i in 0 .. 4 {
+            let dx: isize = xdirs[(d + i) % 4];
+            let dy: isize = ydirs[(d + i) % 4];
+            let x2 = (x as isize) + dx;
+            let y2 = (y as isize) + dy;
+            if self.is_wall(x2, y2) {
+                let nx = x2 + dx;
+                let ny = y2 + dy;
+                if self.is_wall(nx, ny) {
+                    let index = (y2 as usize) * self.width + (x2 as usize);
+                    self.data[index] = Element::Passage;
+                    self.carve(rng, nx as usize, ny as usize);
+                }
+            }
+        }
+
+    }
+
+    // Generate a maze.
+    fn generate(width: usize, height: usize) -> Maze {
+        let mut maze = Maze::init(width, height);
+        let mut rng = rand::thread_rng();
+        maze.carve(&mut rng, 2, 2);
+        maze.data[1 * width + 2] = Element::Passage;
+        maze.data[(height - 2) * width + (width - 3)] = Element::Passage;
+        maze
+    }
+
 }
 
 fn main() {
     let width = 39;     // Maze width; must be odd.
     let height = 23;    // Maze height; must be odd.
-    let maze = generate_maze(width, height);
-    show_maze(maze);
+    let maze = Maze::generate(width, height);
+    maze.show();
 }
