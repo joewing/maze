@@ -31,7 +31,7 @@ main:
 
 // Carve starting at r0.
 carve:
-    push        {r4-r6, ip, lr}
+    push        {r4-r6, lr}
     mov         r4, r0              // Current location in r4
 carve_restart:
     mov         r1, #1
@@ -61,7 +61,7 @@ carve_next:
     and         r5, r5, #3
     subs        r6, r6, #1
     bne         carve_loop
-    pop         {r4-r6, ip, pc}
+    pop         {r4-r6, pc}
 
 // Initialize the maze array.
 initialize:
