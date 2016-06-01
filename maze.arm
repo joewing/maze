@@ -1,0 +1,140 @@
+// Maze generator in ARM assembly language
+// Joe Wingbermuehle
+// 2016-05-31
+// Compile with: gcc -x assembler maze.arm
+
+    // Size of maze, must be odd.
+    .equ    width, 39
+    .equ    height, 23
+
+    .section    .text
+    .global     main
+main:
+    push        {ip, lr}
+    bl          initialize
+    mov         r0, #0
+    bl          time
+    bl          srand
+    movw        r0, #:lower16:maze + width * 2 + 2
+    movt        r0, #:upper16:maze + width * 2 + 2
+    bl          carve
+    movw        r0, #:lower16:maze + width + 2
+    movt        r0, #:upper16:maze + width + 2
+    mov         r1, r0
+    strb        r1, [r0]
+    movw        r0, #:lower16:maze + width * (height - 2) + width - 3
+    movt        r0, #:upper16:maze + width * (height - 2) + width - 3
+    strb        r1, [r0]
+    bl          draw
+    mov         r0, #0
+    pop         {ip, pc}
+
+// Carve starting at r0.
+carve:
+    push        {r4-r6, ip, lr}
+    mov         r4, r0              // Current location in r4
+carve_restart:
+    mov         r1, #1
+    strb        r1, [r4]
+    bl          rand
+    and         r5, r0, #3          // Direction in r5
+    mov         r6, #4              // Tries in r6
+carve_loop:
+    movw        r1, #:lower16:offsets
+    movt        r1, #:upper16:offsets
+    add         r1, r1, r5
+    ldrb        r1, [r1]
+    lsl         r1, r1, #24
+    asr         r1, r1, #24         // Sign extended offset in r1
+    add         r2, r4, r1          // First move in r2
+    add         r0, r2, r1          // Second move in r0
+    ldrb        r3, [r2]
+    ldrb        r1, [r0]
+    add         r3, r3, r1
+    teq         r3, #0
+    bne         carve_next
+    mov         r3, #1
+    strb        r3, [r2]
+    bl          carve
+carve_next:
+    add         r5, r5, #1
+    and         r5, r5, #3
+    subs        r6, r6, #1
+    bne         carve_loop
+    pop         {r4-r6, ip, pc}
+
+// Initialize the maze array.
+initialize:
+    push        {r8, lr}
+    movw        r0, #:lower16:width * height
+    movt        r0, #:upper16:width * height
+    movw        r1, #:lower16:maze
+    movt        r1, #:upper16:maze
+    add         r8, r0, r1
+    sub         r8, r8, #width
+    mov         r3, r1
+    mov         r2, #0
+init_fill_loop:
+    strb        r2, [r1]
+    add         r1, r1, #1
+    subs        r0, r0, #1
+    bne         init_fill_loop
+    mov         r0, #width
+    mov         r1, r3
+    mov         r2, #1
+init_top_bottom:
+    strb        r2, [r1]
+    strb        r2, [r8]
+    add         r8, r8, #1
+    add         r1, r1, #1
+    subs        r0, r0, #1
+    bne         init_top_bottom
+    mov         r0, #height
+    mov         r1, r3
+    add         r8, r1, #width - 1
+init_sides:
+    strb        r2, [r1]
+    strb        r2, [r8]
+    add         r8, r8, #width
+    add         r1, r1, #width
+    subs        r0, r0, #1
+    bne         init_sides
+    pop         {r8, pc}
+
+// Draw the maze.
+draw:
+    push        {r4-r8, lr}
+    movw        r6, #:lower16:maze
+    movt        r6, #:upper16:maze
+    movw        r7, #:lower16:empty
+    movt        r7, #:upper16:empty
+    movw        r8, #:lower16:wall
+    movt        r8, #:upper16:wall
+    mov         r4, #height
+draw_line_loop:
+    mov         r5, #width
+draw_cell_loop:
+    mov         r0, r8
+    ldrb        r1, [r6]
+    teq         r1, #0
+    movne       r0, r7
+    bl          printf
+    add         r6, r6, #1
+    subs        r5, r5, #1
+    bne         draw_cell_loop
+    mov         r0, #10
+    bl          putchar
+    subs        r4, r4, #1
+    bne         draw_line_loop
+    pop         {r4-r8, pc}
+
+    .section    .rodata
+wall:
+    .asciz      "[]"
+empty:
+    .asciz      "  "
+offsets:
+    .byte       -1, 1, -width, width
+
+    .section    .bss
+    .comm       maze, width * height
