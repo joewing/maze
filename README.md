@@ -46,6 +46,7 @@ Here is a list of the languages:
  - *Maze.scala* Scala
  - *maze.sml* SML
  - *maze.sno* SNOBOL4
+ - *maze.sparc* SPARC64 Assembly Language
  - *maze.st* Smalltalk
  - *maze.swift* Swift
  - *maze.tcl* TCL

@@ -1,0 +1,153 @@
+# Maze generator in SPARC64 assembly language
+# Joe Wingbermuehle
+# 2017-08-17
+# Compile with: gcc -x assembler maze.sparc
+
+	# Size of the maze (must be odd).
+	.equ		width, 39
+	.equ		height, 23
+
+	.section	.text
+	.global		main
+
+.add_pc:
+	jmp		%o7 + 8
+	 add		%o7, %l7, %l7
+
+main:
+	save 		%sp, -208, %sp
+	sethi		%hi(_GLOBAL_OFFSET_TABLE_ - 4), %l7
+	call		.add_pc
+	 add		%l7, %lo(_GLOBAL_OFFSET_TABLE_ + 4), %l7
+	call		.initialize
+	 nop
+	call		srand
+	 nop
+	sethi		%hi(.offsets), %o1
+	or		%o1, %lo(.offsets), %o1
+	ldx		[%l7 + %o1], %o1
+	sethi		%hi(.maze), %o0
+	or		%o0, %lo(.maze), %o0
+	ldx		[%l7 + %o0], %o0
+	call		.carve
+	 add		%o0, width * 2 + 2, %o0
+	sub		%o0, width * 2 + 1, %o0
+	stb		%g0, [%o0]
+	add		%o0, width * (height - 1) + width - 3, %o0
+	stb		%g0, [%o0]
+	call		.draw
+	 mov		%l7, %o0
+	return		%i7 + 8
+	 mov		0, %i0
+
+# Carve the maze starting at i0 (a pointer into the maze array).
+# Pointer to offsets in i1
+.carve:
+	save		%sp, -208, %sp
+	mov		%i1, %o1
+.carve_restart:
+	mov		wall_value, %l6
+	call		rand
+	 stb		%l6, [%i0]
+	and		%o0, 3, %o2	! Direction to try in %o2
+	mov		4, %l0		! Number of tries in %l0
+.carve_loop:
+	add		%i1, %o2, %l1
+	ldsb		[%l1], %l1	! Offset in %l1
+	add		%i0, %l1, %l2	! First address in %l2
+	add		%l2, %l1, %o0	! Second address in %o0
+	ldub		[%l2], %l4
+	ldub		[%o0], %l5
+	addcc		%l4, %l5, %l4
+	bne		%icc, .carve_next
+	 nop
+	call		.carve
+	 stb		%l6, [%l2]
+.carve_next:
+	add		%o2, 1, %o2
+	subcc		%l0, 1, %l0
+	bne		.carve_loop
+	 and		%o2, 3, %o2
+	return		%i7 + 8
+	 nop
+
+# Initialize the maze array.
+# This is a leaf that modifies %l0, %l1, %l2, %l3
+.initialize:
+	mov		width * height, %l0
+	sethi		%hi(.maze), %l1
+	or		%l1, %lo(.maze), %l1
+	ldx		[%l7 + %l1], %l1
+	mov		%l1, %l3
+.init_fill:
+	stb		%g0, [%l1]
+	subcc		%l0, 1, %l0
+	bne		%icc, .init_fill
+	 add		%l1, 1, %l1
+	mov		width, %l0
+	mov		%l3, %l1
+	mov		wall_value, %l2
+.init_top_bottom:
+	stb		%l2, [%l1]
+	stb		%l2, [%l1 + width * height - width]
+	subcc		%l0, 1, %l0
+	bne		%icc, .init_top_bottom
+	 add		%l1, 1, %l1
+	mov		height, %l0
+	mov		%l3, %l1
+.init_sides:
+	stb		%l2, [%l1]
+	stb		%l2, [%l1 + width - 1]
+	subcc		%l0, 1, %l0
+	bne		%icc, .init_sides
+	 add		%l1, width, %l1
+	jmp		%o7 + 8
+	 nop
+
+# Draw the maze.
+# This takes the data offset as its only argument.
+.draw:
+	save		%sp, -208, %sp
+	sethi		%hi(.maze), %l0
+	or		%l0, %lo(.maze), %l0
+	ldx		[%i0 + %l0], %l0
+	mov		height, %l1
+.draw_line:
+	mov		width, %l2
+.draw_cell:
+	ldub		[%l0], %l3
+	sethi		%hi(.space), %o0
+	or		%o0, %lo(.space), %o0
+	ldx		[%i0 + %o0], %o0
+	add		%o0, %l3, %o0
+	call		printf
+	 nop
+	subcc		%l2, 1, %l2
+	bne		%icc, .draw_cell
+	 add		%l0, 1, %l0
+	sethi		%hi(.nl), %o0
+	or		%o0, %lo(.nl), %o0
+	call		printf
+	 ldx		[%i0 + %o0], %o0
+	subcc		%l1, 1, %l1
+	bne		%icc, .draw_line
+   	 nop
+	return		%i7 + 8
+	 nop
+
+	.section	.data
+.offsets:
+	.byte		-1, 1, -width, width
+.nl:	.asciz		"\n"
+
+	# .space and .wall must be adjacent.
+.space: .asciz		"  "
+.wall:	.asciz		"[]"
+
+	# Use the size of the ".space" as the value for walls.
+	# This allows us to just add this value to get to the right
+	# string to display when drawing.
+	.equ		wall_value, .wall - .space
+
+	.section	.bss
+	.comm		.maze, width * height
