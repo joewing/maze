@@ -29,12 +29,14 @@ main:
 	sethi		%hi(.maze), %o0
 	or		%o0, %lo(.maze), %o0
 	ldx		[%l7 + %o0], %o0
+	mov		%o0, %l0
 	call		.carve
 	 add		%o0, width * 2 + 2, %o0
-	sub		%o0, width * 2 + 1, %o0
-	stb		%g0, [%o0]
-	add		%o0, width * (height - 1) + width - 3, %o0
-	stb		%g0, [%o0]
+	mov		space_value, %l1
+	add		%l0, width + 2, %l0
+	stb		%l1, [%l0]
+	add		%l0, width * (height - 3) + width - 5, %l0
+	stb		%l1, [%l0]
 	call		.draw
 	 mov		%l7, %o0
 	return		%i7 + 8
@@ -46,7 +48,7 @@ main:
 	save		%sp, -208, %sp
 	mov		%i1, %o1
 .carve_restart:
-	mov		wall_value, %l6
+	mov		space_value, %l6
 	call		rand
 	 stb		%l6, [%i0]
 	and		%o0, 3, %o2	! Direction to try in %o2
@@ -79,6 +81,7 @@ main:
 	or		%l1, %lo(.maze), %l1
 	ldx		[%l7 + %l1], %l1
 	mov		%l1, %l3
+	mov		space_value, %l2
 .init_fill:
 	stb		%g0, [%l1]
 	subcc		%l0, 1, %l0
@@ -86,7 +89,7 @@ main:
 	 add		%l1, 1, %l1
 	mov		width, %l0
 	mov		%l3, %l1
-	mov		wall_value, %l2
+	mov		space_value, %l2
 .init_top_bottom:
 	stb		%l2, [%l1]
 	stb		%l2, [%l1 + width * height - width]
@@ -116,8 +119,8 @@ main:
 	mov		width, %l2
 .draw_cell:
 	ldub		[%l0], %l3
-	sethi		%hi(.space), %o0
-	or		%o0, %lo(.space), %o0
+	sethi		%hi(.wall), %o0
+	or		%o0, %lo(.wall), %o0
 	ldx		[%i0 + %o0], %o0
 	add		%o0, %l3, %o0
 	call		printf
@@ -141,13 +144,13 @@ main:
 .nl:	.asciz		"\n"
 
 	# .space and .wall must be adjacent.
-.space: .asciz		"  "
 .wall:	.asciz		"[]"
+.space: .asciz		"  "
 
-	# Use the size of the ".space" as the value for walls.
+	# Use the size of the ".wall" as the value for spaces.
 	# This allows us to just add this value to get to the right
 	# string to display when drawing.
-	.equ		wall_value, .wall - .space
+	.equ		space_value, .space - .wall
 
 	.section	.bss
 	.comm		.maze, width * height
