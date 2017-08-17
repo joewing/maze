@@ -15,7 +15,7 @@
 	 add		%o7, %l7, %l7
 
 main:
-	save 		%sp, -208, %sp
+	save 		%sp, -128, %sp
 	sethi		%hi(_GLOBAL_OFFSET_TABLE_ - 4), %l7
 	call		.add_pc
 	 add		%l7, %lo(_GLOBAL_OFFSET_TABLE_ + 4), %l7
@@ -39,13 +39,14 @@ main:
 	stb		%l1, [%l0]
 	call		.draw
 	 mov		%l7, %o0
-	return		%i7 + 8
-	 mov		0, %i0
+	mov		0, %i0
+	ret
+	 restore
 
 # Carve the maze starting at i0 (a pointer into the maze array).
 # Pointer to offsets in i1
 .carve:
-	save		%sp, -208, %sp
+	save		%sp, -128, %sp
 	mov		%i1, %o1
 .carve_restart:
 	mov		space_value, %l6
@@ -70,8 +71,8 @@ main:
 	subcc		%l0, 1, %l0
 	bne		.carve_loop
 	 and		%o2, 3, %o2
-	return		%i7 + 8
-	 nop
+	ret
+	 restore
 
 # Initialize the maze array.
 # This is a leaf that modifies %l0, %l1, %l2, %l3
@@ -110,7 +111,7 @@ main:
 # Draw the maze.
 # This takes the data offset as its only argument.
 .draw:
-	save		%sp, -208, %sp
+	save		%sp, -128, %sp
 	sethi		%hi(.maze), %l0
 	or		%l0, %lo(.maze), %l0
 	ldx		[%i0 + %l0], %l0
@@ -135,8 +136,8 @@ main:
 	subcc		%l1, 1, %l1
 	bne		%icc, .draw_line
    	 nop
-	return		%i7 + 8
-	 nop
+	ret
+	 restore
 
 	.section	.data
 .offsets:
