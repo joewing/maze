@@ -33,6 +33,7 @@ Here is a list of the languages:
  - *maze.kt* Kotlin
  - *maze.lisp* Common Lisp
  - *maze.lua* Lua
+ - *maze.mips* 64-bit MIPS Assembly Language
  - *maze.ml* OCaml
  - *maze.nim* Nimrod
  - *maze.pas* Pascal

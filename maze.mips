@@ -1,0 +1,147 @@
+# Maze generator in 64-bit MIPS assembly language
+# Joe Wingbermuehle
+# 2017-08-27
+# Compile with: gcc -x assembler maze.mips
+
+	# Size of the maze (must be odd).
+	.equ		width, 39
+	.equ		height, 23
+	.equ		seed, 123
+
+	.section	.text
+	.global		main
+
+main:
+	daddiu		$sp, $sp, -32
+	sd		$ra, 24($sp)
+	jal		.initialize
+	ori		$a0, $a0, seed
+	jal		srand
+	dla		$a0, .maze + width * 2 + 2
+	jal		.carve
+	dla		$t0, .maze + width + 2
+	ori		$t1, $0, space_value
+	sb		$t1, 0($t0)
+	dla		$t0, .maze + width * (height - 1) - 3
+	sb		$t1, 0($t0)
+	jal		.draw
+	move		$v0, $0
+	ld		$ra, 24($sp)
+	daddiu		$sp, $sp, 32
+	jr		$ra
+
+# Initialize the maze array
+.initialize:
+	move		$t0, $0
+	dla		$t1, .maze
+	ori		$t3, $0, width * height
+.init_fill:
+	dadd		$t8, $t0, $t1
+	sb		$0, 0($t8)
+	daddiu		$t0, $t0, 1
+	bne		$t0, $t3, .init_fill
+	move		$t0, $0
+	ori		$t2, $0, space_value
+	ori		$t3, $0, width
+.init_top_bottom:
+	dadd		$t8, $t0, $t1
+	sb		$t2, width * height - width($t8)
+	sb		$t2, 0($t8)
+	daddiu		$t0, $t0, 1
+	bne		$t0, $t3, .init_top_bottom
+	move		$t0, $0
+	ori		$t3, $0, width * height
+.init_sides:
+	dadd		$t8, $t0, $t1
+	sb		$t2, width - 1($t8)
+	sb		$t2, 0($t8)
+	daddiu		$t0, $t0, width
+	bne		$t0, $t3, .init_sides
+	jr		$ra
+
+# Carve the maze starting at a0 (a pointer into the maze array).
+.carve:
+	daddiu		$sp, $sp, -56
+	sd		$ra, 24($sp)
+	sd		$s0, 32($sp)
+	sd		$s1, 40($sp)
+	sd		$s2, 48($sp)
+	move		$s0, $a0	# Maze pointer in $s0
+	ori		$t0, $0, space_value
+	sb		$t0, 0($s0)
+	jal		rand
+	andi		$s1, $v0, 3	# Direction in $s1
+	ori		$s2, $0, 4	# Tries in $s2
+.carve_loop:
+	dla		$t0, .offsets
+	add		$t0, $t0, $s1
+	lb		$t0, 0($t0)	# Offset in $t0
+	add		$t1, $s0, $t0	# First address in $t1
+	add		$a0, $t1, $t0	# Second address in $a0
+	lb		$t2, 0($t1)
+	lb		$t3, 0($a0)
+	or		$t2, $t2, $t3
+	bne		$t2, $0, .carve_next
+	ori		$t0, $0, space_value
+	sb		$t0, 0($t1)
+	jal		.carve
+.carve_next:
+	addi		$s1, $s1, 1	# Next direction
+	andi		$s1, $s1, 3
+	addi		$s2, $s2, -1
+	bne		$s2, $0, .carve_loop
+	ld		$s0, 32($sp)
+	ld		$s1, 40($sp)
+	ld		$s2, 48($sp)
+	ld		$ra, 24($sp)
+	daddiu		$sp, $sp, 56
+	jr		$ra
+
+# Draw the maze.
+.draw:
+	daddiu		$sp, $sp, -56
+	sd		$ra, 24($sp)
+	sd		$s0, 32($sp)
+	sd		$s1, 40($sp)
+	sd		$s2, 48($sp)
+	dla		$s0, .maze
+	move		$s2, $0
+.draw_line:
+	move		$s1, $0
+.draw_cell:
+	lb		$t0, 0($s0)
+	dla		$a0, .wall
+	add		$a0, $a0, $t0
+	jal		printf
+	addiu		$s1, $s1, 1
+	ori		$t0, width
+	addiu		$s0, $s0, 1
+	bne		$s1, $t0, .draw_cell
+	dla		$a0, .nl
+	jal		printf
+	addiu		$s2, $s2, 1
+	ori		$t0, height
+	bne		$s2, $t0, .draw_line
+	ld		$s0, 32($sp)
+	ld		$s1, 40($sp)
+	ld		$s2, 48($sp)
+	ld		$ra, 24($sp)
+	daddiu		$sp, $sp, 56
+	jr		$ra
+
+	.section	.rodata
+.offsets:
+	.byte		-1, 1, -width, width
+.nl:	.asciz		"\n"
+.wall:	.asciz		"[]"
+.space:	.asciz		"  "
+
+msg:	.asciz		"test!\n"
+
+	# The size of the ".wall" is used for spaces.
+	# This allows us to just add this value to get to the
+	# right string to display when drawing.
+	.equ		space_value, .space - .wall
+
+	.section	.bss
+	.comm		.maze, width * height
