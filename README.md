@@ -44,6 +44,7 @@ Here is a list of the languages:
  - *maze.rb* Ruby
  - *maze.rs* Rust
  - *maze.s* x86-64
+ - *maze.scad* OpenSCAD
  - *Maze.scala* Scala
  - *maze.sml* SML
  - *maze.sno* SNOBOL4
