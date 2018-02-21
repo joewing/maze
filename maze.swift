@@ -1,6 +1,6 @@
 // Maze generator in Swift
-// Joe Wingbermuehle
-// 2014-12-11
+// 2014-12-11 - Joe Wingbermuehle
+// 2018-02-20 - Sarp Başaraner - Update for Swift 4
 // Build with:
 //       xcrun -sdk macosx swift maze.swift 
 
@@ -16,8 +16,8 @@ class Maze {
 
     // Generate a random maze.
     init(width: Int, height: Int) {
-        for i in 0 ..< height {
-            data.append([Cell](count: width, repeatedValue: Cell.Wall))
+        for _ in 0 ..< height {
+            data.append([Cell](repeating: Cell.Wall, count: width))
         }
         for i in 0 ..< width {
             data[0][i] = Cell.Space
@@ -28,7 +28,7 @@ class Maze {
             data[i][width - 1] = Cell.Space
         }
         data[2][2] = Cell.Space
-        self.carve(2, y: 2)
+        self.carve(x: 2, y: 2)
         data[1][2] = Cell.Space
         data[height - 2][width - 3] = Cell.Space
     }
@@ -47,7 +47,7 @@ class Maze {
             if data[y1][x1] == Cell.Wall && data[y2][x2] == Cell.Wall {
                 data[y1][x1] = Cell.Space
                 data[y2][x2] = Cell.Space
-                carve(x2, y: y2)
+                carve(x: x2, y: y2)
             } else {
                 dir = (dir + 1) % 4
                 count += 1
@@ -60,12 +60,12 @@ class Maze {
         for row in data {
             for cell in row {
                 if cell == Cell.Space {
-                    print("  ")
+                    print("  ", separator: "", terminator: "")
                 } else {
-                    print("[]")
+                    print("[]", separator: "", terminator: "")
                 }
             }
-            println()
+            print("")
         }
     }
 
