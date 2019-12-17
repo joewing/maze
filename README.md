@@ -37,7 +37,8 @@ Here is a list of the languages:
  - *maze.ml* OCaml
  - *maze.nim* Nimrod
  - *maze.pas* Pascal
- - *maze.pl* Prolog
+ - *maze.pl* Perl
+ - *maze.pro* Prolog
  - *maze.pli* PL/1
  - *maze.py* Python
  - *maze.r* R
