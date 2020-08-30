@@ -66,6 +66,9 @@ end
 width = 39
 height = 23
 
+-- Initialize random number generator
+math.randomseed(os.time())
+
 -- Generate and display a random maze.
 maze = init_maze(width, height)
 carve_maze(maze, width, height, 2, 2)
