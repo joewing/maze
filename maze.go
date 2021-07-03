@@ -45,13 +45,14 @@ func NewMaze(w int, h int) *Maze {
 func CarveMaze(m *Maze, r *rand.Rand, x int, y int) {
    directions := [][]int { {1, 0}, {-1, 0}, {0, 1}, {0, -1} }
    d := r.Intn(4)
+   m.data[y][x] = SPACE
    for i := 0; i < 4; i++ {
       dx, dy := directions[d][0], directions[d][1]
       ax, ay := x + dx, y + dy
       bx, by := ax + dx, ay + dy
       if m.data[ay][ax] == WALL && m.data[by][bx] == WALL {
-         m.data[ay][ax], m.data[by][bx] = SPACE, SPACE
-         CarveMaze(m, r, bx, by) 
+         m.data[ay][ax] = SPACE
+         CarveMaze(m, r, bx, by)
       }
       d = (d + 1) % 4
    }
@@ -60,7 +61,6 @@ func CarveMaze(m *Maze, r *rand.Rand, x int, y int) {
 /** Generate a maze. */
 func GenerateMaze(m *Maze) {
    r := rand.New(rand.NewSource(time.Now().Unix()))
-   m.data[2][2] = SPACE
    CarveMaze(m, r, 2, 2)
    m.data[1][2] = SPACE
    m.data[m.height - 2][m.width - 3] = SPACE
