@@ -10,11 +10,13 @@ some of the code could be improved, which I fully intend to do eventually.
 
 Here is a list of the languages:
  - *maze.4th* Forth
+ - *maze8.8o* Octo Chip-8 high-level assembly language
  - *maze.adb* Ada
  - *maze.arm* ARM Assembly Language
  - *maze.awk* AWK
  - *maze.bas* BASIC
  - *maze.c* C
+ - *maze8.ch8* Chip-8
  - *maze.clj* Clojure
  - *maze.cob* COBOL
  - *maze.cpp* C++

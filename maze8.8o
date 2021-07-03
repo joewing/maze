@@ -1,0 +1,184 @@
+# Maze generator in Chip-8.
+# Joe Wingbermuehle
+# joewing.net
+# 2021-07-03
+
+# This written for the Octo high-level Chip-8 assembler.
+# The program will generate a random maze, rendering the maze as
+# it is generated (the screen is used as the maze array).
+# Once the maze is complete, press any key to generate a new maze.
+
+:alias temp       v9
+:alias const-3    va
+:alias const-5    vb
+:alias const-128  vc
+:alias spl        vd
+:alias sph        ve
+
+    0x4d  # M
+    0x61  # a
+    0x7a  # z
+    0x65  # e
+    0x38  # 8
+    0x20  # 
+    0x6a  # j
+    0x6f  # o
+    0x65  # e
+    0x77  # w
+    0x69  # i
+    0x6e  # n
+    0x67  # g
+    0x2e  # .
+    0x6e  # n
+    0x65  # e
+    0x74  # t
+    0x00
+
+: main
+  const-3   := 3
+  const-5   := 5
+  const-128 := 128
+  spl       := 0
+  sph       := 0
+
+  # Initialize the maze
+  clear
+  v2 := 1
+  i := pixel
+  loop
+    v1 := 1
+    loop
+      sprite v1 v2 1
+      v1 += 1
+      if v1 != 62 then
+    again
+    v2 += 1
+    if v2 != 30 then
+  again
+
+  # Carve the maze
+  v1 := 2
+  v2 := 2
+  carve-maze
+
+  # Add the start/end points.
+  v1 := 2
+  v2 := 1
+  clear-pixel
+  v1 := 60
+  v2 := 29
+  clear-pixel
+
+  v0 := 3
+  buzzer := v0
+
+  # Wait for a key and do it again.
+  v0 := key
+  jump main
+
+# Set v1, v2 = 0
+: clear-pixel
+  i := pixel
+  sprite v1 v2 1
+  if vf == 0 then sprite v1 v2 1
+  return
+
+# Load vf = ! v1, v2
+: get-pixel
+  i := pixel
+  sprite v1 v2 1
+  sprite v1 v2 1
+  return
+
+: get-stack-pointer
+  i := stack
+  i += spl
+  temp := sph
+  loop
+    if temp == 0 then return
+    i += const-128
+    i += const-128
+    temp -= 1
+  again
+
+: push
+  get-stack-pointer
+  save v4
+  spl += const-5
+  sph += vf
+  return
+
+: pop
+  spl -= const-5
+  if vf != 1 then sph -= 1
+  get-stack-pointer
+  load v4
+  return
+
+# Carve at (v1, v2)
+: carve-maze
+  clear-pixel
+  v3 := 0
+  v4 := random 3
+  loop
+
+    i := xdirections
+    i += v4
+    load v0
+    v5 := v1
+    v5 += v0    # v5 = x1
+    v6 := v5
+    v6 += v0    # v6 = x2
+
+    i := ydirections
+    i += v4
+    load v0
+    v7 := v2
+    v7 += v0    # v7 = y1
+    v8 := v7
+    v8 += v0    # v8 = y2
+
+    push
+    v1 := v6
+    v2 := v8
+    get-pixel
+    if vf == 0 begin
+      v1 := v5
+      v2 := v7
+      get-pixel
+      if vf == 0 begin
+        clear-pixel
+        v1 := v6
+        v2 := v8
+        jump carve-maze
+      end
+    end
+    pop
+
+    # Next direction
+    v4 += 1
+    v4 &= const-3
+
+    v3 += 1
+    if v3 != 4 then
+  again
+
+  v0 := spl
+  v0 |= sph
+  if v0 == 0 then return
+
+  pop
+  jump carve-maze
+
+# Save 2 bytes by overlapping these.
+: xdirections
+  1 -1
+: ydirections
+  0 0
+  1 -1
+
+: pixel
+  0x80
+
+: stack
+
