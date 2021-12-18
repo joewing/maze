@@ -10,7 +10,7 @@ some of the code could be improved, which I fully intend to do eventually.
 
 Here is a list of the languages:
  - *maze.4th* Forth
- - *maze8.8o* Octo Chip-8 high-level assembly language
+ - *maze8.8o* [Octo](https://github.com/JohnEarnest/Octo) Chip-8 high-level assembly language
  - *maze.adb* Ada
  - *maze.arm* ARM Assembly Language
  - *maze.awk* AWK
@@ -31,7 +31,7 @@ Here is a list of the languages:
  - *maze.io* Io
  - *Maze.java* Java
  - *maze.jcl* IBM System/360 Assembly Language
- - *maze.jl* JL (https://github.com/joewing/jl)
+ - *maze.jl* [JL](https://github.com/joewing/jl)
  - *maze.kt* Kotlin
  - *maze.lisp* Common Lisp
  - *maze.lua* Lua

@@ -32,6 +32,7 @@ variable maze width height 1 - * allot
 : carve-maze ( x y -- )
    0 random 4 mod 0 0 0 0 0 0
    { x y count dir dx dy x1 y1 x2 y2 }
+   0 maze y width * x + + c!
    begin
       0 to dx 0 to dy
       dir 0 = if  1 to dx else
@@ -45,7 +46,6 @@ variable maze width height 1 - * allot
          maze y1 width * x1 + + c@ 1 =
          maze y2 width * x2 + + c@ 1 = and if
             0 maze y1 width * x1 + + c!
-            0 maze y2 width * x2 + + c!
             x2 y2 recurse
       then then
       count 1 + to count
